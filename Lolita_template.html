@@ -1,0 +1,255 @@
+<!doctype html>
+<html>
+  <head>
+    <title>englishow</title>
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Fira+Sans+Extra+Condensed" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Libre+Franklin" rel="stylesheet">
+	<style>
+		#big_layout {
+			width: 100%;
+			margin: 0px auto;
+			padding: 0px;
+			border: 0px solid #bcbcbc;
+			display:table;
+		}
+		#show_img {
+			width: 20%;
+			height: 900px;
+			position: fixed;
+			top: 0;
+			left: 0;
+			overflow-x: hidden;
+			overflow-y: auto;
+			margin: 0px auto;
+			padding: 0px;
+			border: 0px solid #bcbcbc;
+			float: left;
+		}
+		#jb_container {
+			width: 80%;
+			margin: 0px;
+			padding: 0px 0px 0px 0px;;
+			float: right;
+			border: 0px solid #bcbcbc;
+			display:table;
+		}
+		#jb_content {
+			width: 55%;
+			height: 100%;
+			padding: 0px 20px 20px 20px;
+			margin-bottom: 20px;
+			float: left;
+			border: 0px solid #bcbcbc;
+			overflow-x: hidden;
+			overflow-y: auto; /* prevents scroll bar flash */
+			padding: 0.2em;
+			line-height: 1.6;
+			font-family: 'Libre Franklin', sans-serif;
+			font-size: 1.3em;
+			word-spacing: 4px;
+			text-indent: 3%;
+		}
+		#jb_sidebar {
+			width: 30%;
+			position: fixed;
+			top: 0;
+			right: 0;
+			padding: 0px 20px 20px 20px;
+			margin-bottom: 20px;
+			float: right;
+			border: 0px solid #bcbcbc;
+		}
+		#header_center {
+			height: 60px;
+			padding-left: 0px;
+			margin: 0px auto;
+			margin-bottom: 0px;
+			vertical-align:middle;
+			border: 0px solid #bcbcbc;
+			text-align: center;
+		}
+		#dic_frame {
+			width: 95%;
+			height: 700px;
+			border: 0px solid black;
+		}
+		#fixed {
+			position: fixed;
+			width: 120px;
+			bottom: 0;
+			right: 0;
+			background-color: yellow;
+			opacity: 0.5;
+			z-index: 999;
+			font-family: 'Libre Franklin', sans-serif;
+			font-size: 1.3em;
+			color: blue;
+			padding: 10px;
+		}
+		body {
+			font-family: 'Libre Franklin', sans-serif;
+			font-size: 13px;
+		}
+		#dicType {
+			font-family: 'Libre Franklin', sans-serif;
+			font-size: 12px;
+		}
+	</style>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+	<script>
+		var selectText = "";
+		
+		var dicAddr = "http://c.merriam-webster.com/coredictionary/";
+		$(function(){
+			var showData = $('#show_img');
+			$.support.cors = true;
+			$(document.body).bind('dblclick', function(e){
+				search();
+				imageSearch();
+			});
+			$( "#searchWordButton" ).click(function() {
+				selectText = $("#searchWord").val();
+				dicSearch();
+				wordList();
+				imageSearch();
+			});
+			$("#dicType").change(function() {
+				dicSearch();
+			});
+			$( "#reset" ).click(function() {
+				showData.empty();
+			});
+			
+			function imageSearch() {
+		
+				if (document.getElementById("myCheck").checked) {
+					$.ajax({
+						url: 'https://www.googleapis.com/customsearch/v1',
+						 type: 'GET',
+						 data: "key=AIzaSyAsn_BqIJs8FS8qyCZonEvJ2fgpzXHmt_s&cx=012222057275105284918:2fhqptrxpgk&q="+selectText+"&num=7&start=1&imgSize=medium&searchType=image",
+						 dataType: 'JSON',
+						 success: function(data){
+							showData.empty();
+							$.each(data.items, function (i, item) {
+								if(i == 0) showData.append('<ul />');
+								showData.append('<li><a href="'+item.image.contextLink+'"><img src="'+item.link+'" alt="'+item.title+'"></a><br/>'+item.title+'<br/>'+item.snippet + '</li>');
+							});
+						 }
+					});
+				}			
+			
+			}
+			
+		});
+		
+		function search() {
+	
+			var selection;
+			
+			if (window.getSelection) {
+			  selection = window.getSelection();
+			} else if (document.selection) {
+			  selection = document.selection.createRange();
+			}
+			selectText = selection.toString();
+			
+			if (selectText.length > 0) {
+				dicSearch();
+				wordList();
+				
+				var nNd = document.createElement("span");
+				var w = getSelection().getRangeAt(0);
+				w.surroundContents(nNd);
+				$('span').css({"color":"blue"});
+			}
+			
+		
+		}
+		
+		function dicSearch() {
+		
+			if ($("#dicType").val() == "1") {
+				if (selectText == "") {
+					dicAddr = "https://www.merriam-webster.com/word-of-the-day";
+				} else {
+					dicAddr = "https://www.merriam-webster.com/dictionary/"+selectText;
+				}
+			} else if ($("#dicType").val() == "2") {
+				if (selectText == "") {
+					dicAddr = "http://learnersdictionary.com/";
+				} else {
+					dicAddr = "http://learnersdictionary.com/definition/"+selectText;
+				}
+			} else if ($("#dicType").val() == "3") {
+				dicAddr = "http://c.merriam-webster.com/coredictionary/"+selectText;
+			}
+			$('#dic_frame').attr('src', dicAddr);
+		
+		}
+		
+		function wordList() {
+		
+			if ($('#fixed').html() == '') {
+				$('#fixed').html(selectText);
+			} else {
+				if ( $('#fixed').html().indexOf(selectText) == -1 ) {
+					$('#fixed').html($('#fixed').html() + '<br/>' + selectText);
+				}
+			}
+		
+		}		
+		
+	</script>
+  </head>
+  <body>
+		<div id="big_layout">
+		<div id="show_img"></div>
+		<div id="jb_container">
+		  <div id="jb_content" class="wrap" onmouseup="search();">
+<!-- contents start -->              
+
+<!-- contents end -->
+			
+		</div>
+		  <div id="jb_sidebar">
+				<div id="header_center">
+					<h1 style="text-aling:center;">Lolita</h1>
+				</div>
+				go to&nbsp;Part One
+				<a href="#001">C 1</a>&nbsp;&nbsp;<a href="#002">C 2</a>&nbsp;&nbsp;<a href="#003">C 3</a>&nbsp;&nbsp;<a href="#004">C 4</a>&nbsp;&nbsp;<a href="#005">C 5</a>&nbsp;&nbsp;
+				<a href="#006">C 6</a>&nbsp;&nbsp;<a href="#007">C 7</a>&nbsp;&nbsp;<a href="#008">C 8</a>&nbsp;&nbsp;<a href="#009">C 9</a>&nbsp;&nbsp;<a href="#010">C 10</a>&nbsp;&nbsp;
+				<a href="#011">C 11</a>&nbsp;&nbsp;<a href="#012">C 12</a>&nbsp;&nbsp;<a href="#013">C 13</a>&nbsp;&nbsp;<a href="#014">C 14</a>&nbsp;&nbsp;<a href="#015">C 15</a>&nbsp;&nbsp;
+				<a href="#016">C 16</a>&nbsp;&nbsp;<a href="#017">C 17</a>&nbsp;&nbsp;<a href="#018">C 18</a>&nbsp;&nbsp;<a href="#019">C 19</a>&nbsp;&nbsp;<a href="#020">C 20</a>&nbsp;&nbsp;
+				<a href="#021">C 21</a>&nbsp;&nbsp;<a href="#022">C 22</a>&nbsp;&nbsp;<a href="#023">C 23</a>&nbsp;&nbsp;<a href="#024">C 24</a>&nbsp;&nbsp;<a href="#025">C 25</a>&nbsp;&nbsp;
+				<a href="#026">C 26</a>&nbsp;&nbsp;<a href="#027">C 27</a>&nbsp;&nbsp;<a href="#028">C 28</a>&nbsp;&nbsp;<a href="#029">C 29</a>&nbsp;&nbsp;<a href="#030">C 30</a>&nbsp;&nbsp;
+				<a href="#031">C 31</a>&nbsp;&nbsp;<a href="#032">C 32</a>&nbsp;&nbsp;<a href="#033">C 33</a><br/><br/>
+                Part Two&nbsp;
+                <a href="#101">C 1</a>&nbsp;&nbsp;<a href="#102">C 2</a>&nbsp;&nbsp;<a href="#103">C 3</a>&nbsp;&nbsp;<a href="#104">C 4</a>&nbsp;&nbsp;<a href="#105">C 5</a>&nbsp;&nbsp;
+				<a href="#106">C 6</a>&nbsp;&nbsp;<a href="#107">C 7</a>&nbsp;&nbsp;<a href="#108">C 8</a>&nbsp;&nbsp;<a href="#109">C 9</a>&nbsp;&nbsp;<a href="#110">C 10</a>&nbsp;&nbsp;
+				<a href="#111">C 11</a>&nbsp;&nbsp;<a href="#112">C 12</a>&nbsp;&nbsp;<a href="#113">C 13</a>&nbsp;&nbsp;<a href="#114">C 14</a>&nbsp;&nbsp;<a href="#115">C 15</a>&nbsp;&nbsp;
+				<a href="#116">C 16</a>&nbsp;&nbsp;<a href="#117">C 17</a>&nbsp;&nbsp;<a href="#118">C 18</a>&nbsp;&nbsp;<a href="#119">C 19</a>&nbsp;&nbsp;<a href="#120">C 20</a>&nbsp;&nbsp;
+				<a href="#121">C 21</a>&nbsp;&nbsp;<a href="#122">C 22</a>&nbsp;&nbsp;<a href="#123">C 23</a>&nbsp;&nbsp;<a href="#124">C 24</a>&nbsp;&nbsp;<a href="#125">C 25</a>&nbsp;&nbsp;
+				<a href="#126">C 26</a>&nbsp;&nbsp;<a href="#127">C 27</a>&nbsp;&nbsp;<a href="#128">C 28</a>&nbsp;&nbsp;<a href="#129">C 29</a>&nbsp;&nbsp;<a href="#130">C 30</a>&nbsp;&nbsp;
+				<a href="#131">C 31</a>&nbsp;&nbsp;<a href="#132">C 32</a>&nbsp;&nbsp;<a href="#133">C 33</a>&nbsp;&nbsp;<a href="#134">C 34</a>&nbsp;&nbsp;<a href="#135">C 35</a>&nbsp;&nbsp;
+				<a href="#136">C 36</a><br/><br/>
+			
+			dictionary : <select name="dicType" id="dicType">
+							<option value="1">Merriam Webster</option>
+							<option value="2">english english</option>
+							<option value="3">english korea</option>
+						</select>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<input type="text" id="searchWord" name="searchWord" style="width:150px" />&nbsp;&nbsp;&nbsp;<input type="button" id="searchWordButton" value="Search"/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+			<input type="checkbox" id="myCheck"> Image Search
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<input type="button" id="reset" value="Image Reset">
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<iframe id="dic_frame" src="https://www.merriam-webster.com/word-of-the-day"></iframe>
+		  </div>
+		</div>
+	</div>
+	<div id="fixed"></div>
+  </body>
+</html>
