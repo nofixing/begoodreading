@@ -1,0 +1,535 @@
+<!doctype html>
+<html>
+  <head>
+    <title>GettysburgAddress</title>
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Fira+Sans+Extra+Condensed" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Libre+Franklin" rel="stylesheet">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+	<style>
+		#big_layout {
+			width: 100%;
+			margin: 0px auto;
+			padding: 0px;
+			border: 0px solid #bcbcbc;
+			display:table;
+		}
+		#jb_content {
+			width: 30%;
+			height: 100%;
+			padding: 45px 20px 20px 20px;
+			margin-bottom: 20px;
+			float: left;
+			border: 0px solid #bcbcbc;
+			overflow-x: hidden;
+			overflow-y: auto; /* prevents scroll bar flash */
+			line-height: 1.6;
+			font-family: 'Libre Franklin', sans-serif;
+			font-size: 1.3em;
+			word-spacing: 2px;
+			text-indent: 3%;
+		}
+		#jb_txtEditor {
+			width: 35%;
+			height: 100%;
+			position: fixed;
+			top: 30px;
+			right: 600px;
+			padding: 0;
+			margin-bottom: 20px;
+			float: left;
+			border: 0px solid #bcbcbc;
+			overflow-x: hidden;
+			overflow-y: auto; /* prevents scroll bar flash */
+		}
+		#jb_sidebar {
+			width: 30%;
+			position: fixed;
+			top: 50px;
+			right: 0;
+			padding: 0px 20px 20px 0;
+			margin-bottom: 20px;
+			float: right;
+			border: 0px solid #bcbcbc;
+		}
+        .standalone-container {
+            margin: 50px auto;
+            width: 100%;
+        }
+        #snow-container {
+            height: 750px;
+        }
+		.ql-showHtml:after {
+			content: "[SRC]";
+		}
+		.ql-clearContents:after {
+			content: "[Clear]";
+		}
+		.ql-opnFile:after {
+			content: "[File]";
+		}
+		#header_center {
+			height: 60px;
+			padding-left: 0px;
+			margin: 0px auto;
+			margin-bottom: 0px;
+			vertical-align:middle;
+			border: 0px solid #bcbcbc;
+			text-align: center;
+		}
+		#dic_frame {
+			width: 100%;
+			height: 800px;
+			border: 0px solid black;
+		}
+		body {
+			font-family: 'Libre Franklin', sans-serif;
+			font-size: 13px;
+		}
+		#dicType {
+			font-family: 'Libre Franklin', sans-serif;
+			font-size: 12px;
+		}
+
+		header {
+			height: 35px;
+			position: fixed;
+			top: 0;
+            left: 0;
+			transition: top 0.2s ease-in-out;
+			width: 100%;
+			font-size: 1em;
+		}
+		
+		ul.topnav {
+			list-style-type: none;
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+			background-color: #333;
+		}
+		
+		ul.topnav li {float: left;}
+		
+		ul.topnav li a {
+			display: block;
+			color: white;
+			text-align: center;
+			padding: 9px 16px;
+			text-decoration: none;
+		}
+		
+		ul.topnav li a:hover:not(.active) {background-color: #111;}
+
+		ul.topnav li a.active {background-color: #4CAF50;}
+
+		ul.topnav li.right {float: right;}
+			
+		.nav_up {
+			top: -35px;
+		}
+	</style>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+	<script>
+		var selectText = "";
+		var wordArray = [];
+		var dicAddr = "http://c.merriam-webster.com/coredictionary/";
+		$(function(){
+			var showData = $('#show_img');
+			$.support.cors = true;
+
+			
+			// Hide Header on on scroll down
+			var didScroll;
+			var lastScrollTop = 0;
+			var delta = 5;
+			var navbarHeight = $('header').outerHeight();
+
+			$(window).scroll(function(event){
+				didScroll = true;
+			});
+
+			setInterval(function() {
+				if (didScroll) {
+					hasScrolled();
+					didScroll = false;
+				}
+			}, 250);
+
+			function hasScrolled() {
+				var st = $(this).scrollTop();
+				
+				// Make sure they scroll more than delta
+				if(Math.abs(lastScrollTop - st) <= delta)
+					return;
+				
+				// If they scrolled down and are past the navbar, add class .nav_up.
+				// This is necessary so you never see what is "behind" the navbar.
+				if (st > lastScrollTop && st > navbarHeight){
+					// Scroll Down
+					$('header').removeClass('nav_down').addClass('nav_up');
+				} else {
+					// Scroll Up
+					if(st + $(window).height() < $(document).height()) {
+						$('header').removeClass('nav_up').addClass('nav_down');
+					}
+				}
+				
+				lastScrollTop = st;
+			}
+
+
+			$( "#docTitle" ).html( document.getElementsByTagName('title')[0].innerHTML );
+			console.log( document.getElementsByTagName('title')[0].innerHTML );
+			$( "#jb_content" ).bind('dblclick', function(e){
+				search();
+				imageSearch();
+			});
+			$( "#searchWordButton" ).click(function() {
+				selectText = $("#searchWord").val();
+				dicSearch();
+				wordList();
+				imageSearch();
+			});
+			$("#dicType").change(function() {
+				dicSearch();
+			});
+			
+			function imageSearch() {
+		
+				if (document.getElementById("myCheck").checked) {
+					$('#img_layer').css("display","block");
+					$.ajax({
+						url: 'https://www.googleapis.com/customsearch/v1',
+						 type: 'GET',
+						 data: "key=AIzaSyAsn_BqIJs8FS8qyCZonEvJ2fgpzXHmt_s&cx=012222057275105284918:2fhqptrxpgk&q="+selectText+"&num=7&start=1&imgSize=medium&searchType=image",
+						 dataType: 'JSON',
+						 success: function(data){
+							showData.empty();
+							$.each(data.items, function (i, item) {
+								if(i == 0) showData.append('<ul />');
+								showData.append('<li><a href="'+item.image.contextLink+'"><img src="'+item.link+'" alt="'+item.title+'"></a><br/>'+item.title+'<br/>'+item.snippet + '</li>');
+							});
+						 }
+					});
+				}			
+			
+			}
+
+			$("#save").click(function(){
+				
+				if($.trim($('#fileName').val()) == "") {
+					alert('파일명을 입력해 주세요.');
+					return;
+				}
+				
+				var str = document.querySelector('#snow-container').children[0].innerHTML;
+				var find = '<p><br></p>';
+				var re = new RegExp(find, 'g');
+				str = str.replace(re, '');
+				var orgText = "<!doctype html>";
+				orgText += "<html>";
+				orgText += "  <head>";
+				orgText += "    <title>"+$('#fileName').val()+"</title>";
+				orgText += "    <link href='https://cdn.quilljs.com/1.3.6/quill.snow.css' type='text/css' rel='stylesheet'>";
+				orgText += "  </head>";
+				orgText += "  <body>";
+				orgText += str;
+				orgText += "  </body>";
+				orgText += "</html>";
+				
+				//var textToWrite = wordWrap(orgText, 72);
+				
+				var textFileAsBlob = new Blob([orgText], {type:'text/html'});
+				var fileNameToSaveAs = $('#fileName').val()+'.html';
+
+				try {
+					var downloadLink = document.createElement("a");
+					downloadLink.download = fileNameToSaveAs;
+					downloadLink.innerHTML = "Download File";
+					if (window.webkitURL != null)
+					{
+						// Chrome allows the link to be clicked
+						// without actually adding it to the DOM.
+						downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+					}
+					else
+					{
+						// Firefox requires the link to be added to the DOM
+						// before it can be clicked.
+						downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+						//downloadLink.onclick = destroyClickedElement;
+						downloadLink.style.display = "none";
+						document.body.appendChild(downloadLink);
+					}
+
+					downloadLink.click();
+				}
+				catch(err) {
+					window.navigator.msSaveBlob(textFileAsBlob, $('#fileName').val()+'.html'); 
+				}
+				
+			});
+
+		});
+
+		function onresize() {
+			if ($(window).height() == $(document).height()){
+				$('header').removeClass('nav_up').addClass('nav_down');
+			}
+		}
+		
+		function search() {
+	
+			var selection;
+			
+			if (window.getSelection) {
+			  selection = window.getSelection();
+			} else if (document.selection) {
+			  selection = document.selection.createRange();
+			}
+			selectText = selection.toString().trim();
+			
+			if (selectText.length > 0) {
+				dicSearch();
+				wordList();
+				
+				var nNd = document.createElement("span");
+				var w = getSelection().getRangeAt(0);
+				w.surroundContents(nNd);
+				$('span').css({"color":"blue"});
+			}
+			
+		
+		}
+		
+		function dicSearch() {
+		
+			if ($("#dicType").val() == "1") {
+				if (selectText == "") {
+					dicAddr = "https://www.merriam-webster.com/word-of-the-day";
+				} else {
+					dicAddr = "https://www.merriam-webster.com/dictionary/"+selectText;
+				}
+			} else if ($("#dicType").val() == "2") {
+				if (selectText == "") {
+					dicAddr = "http://learnersdictionary.com/";
+				} else {
+					dicAddr = "http://learnersdictionary.com/definition/"+selectText;
+				}
+			} else if ($("#dicType").val() == "3") {
+				dicAddr = "http://c.merriam-webster.com/coredictionary/"+selectText;
+			} else if ($("#dicType").val() == "4") {
+				dicAddr = "http://small.dic.daum.net/search.do?q="+selectText+"&dic=eng";
+			}
+			$('#dic_frame').attr('src', dicAddr);
+		
+		}
+		
+		function wordList() {
+			var myEditor = document.querySelector('#snow-container');
+			var html = myEditor.children[0].innerHTML;
+			var isThere = false;
+            jQuery.each( wordArray, function( i, val ) {
+                if (val == selectText) {
+                    isThere = true;
+                    return;
+                }
+            });
+            if ( isThere ) return;
+            if (wordArray.length == 0) {
+                document.querySelector('#snow-container').children[0].innerHTML = "<strong>"+selectText+"</strong>";
+            } else {
+                document.querySelector('#snow-container').children[0].innerHTML = html + "<strong>"+selectText+"</strong>";
+            }
+            wordArray.push(selectText);
+		}	
+		
+	</script>
+  </head>
+	<body onresize="onresize()">
+        <header class="nav_down">
+            <ul class="topnav">
+                <li><a href="#none" onclick="goTo();">Reading Only</a></li>
+                <li><a href="#none" onclick="goTo();">Reading Practice</a></li>
+            </ul>
+        </header>
+        <div id="big_layout">
+			<div id="jb_content">
+<!-- contents start -->              
+<body>
+	<p>
+        Four score and seven years ago our fathers brought forth on this continent, a new nation, conceived in Liberty, and
+        dedicated to the proposition that all men are created equal.
+    </p>
+    <p>
+        Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated,
+        can long endure. We are met on a great battle-field of that war. We have come to dedicate a portion of that field,
+        as a final resting place for those who here gave their lives that that nation might live. It is altogether fitting
+        and proper that we should do this.
+    </p>
+    <p>
+        But, in a larger sense, we cannot dedicate -- we cannot consecrate -- we cannot hallow -- this ground. The brave
+        men, living and dead, who struggled here, have consecrated it, far above our poor power to add or detract. The
+        world will little note, nor long remember what we say here, but it can never forget what they did here. It is
+        for us the living, rather, to be dedicated here to the unfinished work which they who fought here have thus far
+        so nobly advanced. It is rather for us to be here dedicated to the great task remaining before us -- that from
+        these honored dead we take increased devotion to that cause for which they gave the last full measure of devotion
+        -- that we here highly resolve that these dead shall not have died in vain -- that this nation, under God, shall
+        have a new birth of freedom -- and that government of the people, by the people, for the people, shall not perish
+        from the earth.
+    </p>
+    <p>
+        Abraham Lincoln
+    </p>
+    <p>
+        November 19, 1863
+    </p>
+    <p></p>
+    <p>
+        The Gettysburg Address is a speech by U.S. President Abraham Lincoln, and one of the best-known speeches in American 
+        history. It was delivered by Lincoln during the American Civil War at the dedication of the Soldiers' National 
+        Cemetery in Gettysburg, Pennsylvania, on the afternoon of Thursday, November 19, 1863, four and a half months after 
+        the Union armies defeated those of the Confederacy at the Battle of Gettysburg.
+    </p>
+    <p>
+        Lincoln's carefully crafted address, secondary to others' presentations that day, came to be seen as one of the 
+        greatest and most influential statements of American national purpose. In just over two minutes, Lincoln reiterated 
+        the principles of human equality espoused by the Declaration of Independence and proclaimed the Civil War as a 
+        struggle for the preservation of the Union sundered by the secession crisis, with "a new birth of freedom" that 
+        would bring true equality to all of its citizens. Lincoln also redefined the Civil War as a struggle not just for 
+        the Union, but also for the principle of human equality.
+    </p>
+</body>
+<!-- contents end -->
+			
+        </div>
+        <div id="jb_txtEditor">
+            <!--<textarea id="myTextarea" spellcheck="false"></textarea>-->
+            <div class="standalone-container">
+                <div id="snow-container" spellcheck="false"></div><br/>
+				파일명: <input type="text" id="fileName">
+				<button type="button" value="save" id="save">Save</button><br/>
+				예시) 파일명이 englishow 이면 englishow.html로 저장됨.
+			</div>
+        </div>
+        <div id="jb_sidebar">
+            <div id="header_center">
+                <h1 style="text-align:center;" id="docTitle"></h1>
+            </div>
+        dictionary : <select name="dicType" id="dicType">
+                        <option value="3">english korea</option>            
+                        <option value="4">Daum Dictionary</option>			
+						<option value="2">english english</option>			
+						<option value="1">Merriam Webster</option>
+                    </select>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <input type="text" id="searchWord" name="searchWord" style="width:150px" />&nbsp;&nbsp;&nbsp;<input type="button" id="searchWordButton" value="Search"/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+        <input type="checkbox" id="myCheck"> Image Search
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <iframe id="dic_frame" src="http://c.merriam-webster.com/coredictionary/"></iframe>
+        </div>
+    </div><!-- big_layout end -->
+	<div id="img_layer" style="display:none;position:fixed;left:650px;top:60px;width:500px;height:800px;overflow:auto;">
+		<button type="button" style="position:relative;left:230px;width:50px; "onclick="javascript:$('#img_layer').css('display','none');">닫기</button>
+		<div id="show_img"></div>
+		<button type="button" style="position:relative;left:230px;width:50px; "onclick="javascript:$('#img_layer').css('display','none');">닫기</button>
+	</div>
+	
+	<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script>
+		var toolbarOptions = [
+			['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+			['blockquote', 'code-block'],
+
+			[{ 'header': 1 }, { 'header': 2 }],               // custom button values
+			[{ 'list': 'ordered' }, { 'list': 'bullet' }],
+			[{ 'script': 'sub' }, { 'script': 'super' }],      // superscript/subscript
+			[{ 'indent': '-1' }, { 'indent': '+1' }],          // outdent/indent
+			[{ 'direction': 'rtl' }],                         // text direction
+
+			[{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+			[{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+			[{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+			[{ 'font': [] }],
+			[{ 'align': [] }],
+
+			['clean'],                                         // remove formatting button
+			['link', 'image', 'video'],
+			['showHtml'],
+			
+			['clearContents'],
+
+			['opnFile']
+		];
+
+		var quill = new Quill('#snow-container', {
+			modules: {
+				toolbar: toolbarOptions,
+				clipboard: {
+					matchVisual: false
+				}
+			},
+			theme: 'snow'
+		});
+
+		var txtArea = document.createElement('textarea');
+		txtArea.style.cssText = "width: 100%;margin: 0;background: rgb(255, 255, 255);box-sizing: border-box;color: rgb(0, 0, 0);"+
+		"font-size: 13px;outline: none;padding: 20px;line-height: 24px;font-family: Consolas, Menlo, Monaco, &quot;Courier New&quot;, monospace;"+
+		"position: absolute;top: 0;bottom: 0;border: none;display:none";
+
+		var htmlEditor = quill.addContainer('ql-custom');
+		htmlEditor.appendChild(txtArea);
+
+		var myEditor = document.querySelector('#snow-container');
+		quill.on('text-change', (delta, oldDelta, source) => {
+			var html = myEditor.children[0].innerHTML;
+			txtArea.value = html;
+		});
+
+		var customButton = document.querySelector('.ql-showHtml');
+		customButton.addEventListener('click', function () {
+			if (txtArea.style.display === '') {
+				var html = txtArea.value;
+				self.quill.pasteHTML(html);
+			}
+			txtArea.style.display = txtArea.style.display === 'none' ? '' : 'none';
+		});
+
+		var clearContents = document.querySelector('.ql-clearContents');
+		clearContents.addEventListener('click', function () {
+			myEditor.children[0].innerHTML = '';
+            wordArray = [];
+		});
+
+		var openFile = document.querySelector('.ql-opnFile');
+		openFile.addEventListener('click', function () {
+			selectLocalFile();
+		});
+
+		function selectLocalFile() {
+			const input = document.createElement('input');
+			input.setAttribute('type', 'file');
+			input.click();
+
+			// Listen upload local image and save to server
+			input.onchange = () => {
+				const file = input.files[0];
+
+				var reader = new FileReader();
+				
+				reader.addEventListener('load', function (e) {
+					var htm = e.target.result;
+					htm = htm.substring(htm.indexOf("<body>")+6, htm.indexOf("</body>"));
+					self.quill.clipboard.dangerouslyPasteHTML(htm);
+				});
+				
+				reader.readAsText(file);
+			};
+		}
+
+    </script>
+</body>
+</html>
