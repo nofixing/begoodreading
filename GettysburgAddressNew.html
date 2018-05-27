@@ -34,7 +34,7 @@
 			height: 100%;
 			position: fixed;
 			top: 30px;
-			right: 600px;
+			left: 33%;
 			padding: 0;
 			margin-bottom: 20px;
 			float: left;
@@ -343,15 +343,29 @@
                 document.querySelector('#snow-container').children[0].innerHTML = html + "<strong>"+selectText+"</strong>";
             }
             wordArray.push(selectText);
-		}	
+		}
+
+		function ReadingOnly() {
+			$('#jb_content').css('width', '50%');
+			$('#jb_content').css('padding', '30px 25% 0 25%');
+			$('#jb_txtEditor').css('display', 'none');
+			$('#jb_sidebar').css('display', 'none');
+		}
+
+		function ReadingPractice() {
+			$('#jb_content').css('width', '30%');
+			$('#jb_content').css('padding', '45px 20px 20px 20px');
+			$('#jb_txtEditor').css('display', 'block');
+			$('#jb_sidebar').css('display', 'block');
+		}
 		
 	</script>
   </head>
 	<body onresize="onresize()">
         <header class="nav_down">
             <ul class="topnav">
-                <li><a href="#none" onclick="goTo();">Reading Only</a></li>
-                <li><a href="#none" onclick="goTo();">Reading Practice</a></li>
+                <li><a href="#none" onclick="ReadingOnly();">Reading Only</a></li>
+                <li><a href="#none" onclick="ReadingPractice();">Reading Practice</a></li>
             </ul>
         </header>
         <div id="big_layout">
