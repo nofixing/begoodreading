@@ -1,0 +1,543 @@
+<!doctype html>
+<html>
+  <head>
+    <title>GettysburgAddress</title>
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Fira+Sans+Extra+Condensed" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Libre+Franklin" rel="stylesheet">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+	<style>
+		#big_layout {
+			width: 100%;
+			margin: 0px auto;
+			padding: 0px;
+			border: 0px solid #bcbcbc;
+			display:table;
+		}
+		#jb_content {
+			width: 30%;
+			height: 100%;
+			padding: 45px 20px 20px 20px;
+			margin-bottom: 20px;
+			float: left;
+			border: 0px solid #bcbcbc;
+			overflow-x: hidden;
+			overflow-y: auto; /* prevents scroll bar flash */
+			line-height: 1.6;
+			font-family: 'Libre Franklin', sans-serif;
+			font-size: 1.3em;
+			word-spacing: 2px;
+			text-indent: 3%;
+		}
+		#jb_txtEditor {
+			width: 35%;
+			height: 100%;
+			position: fixed;
+			top: 30px;
+			left: 33%;
+			padding: 0;
+			margin-bottom: 20px;
+			float: left;
+			border: 0px solid #bcbcbc;
+			overflow-x: hidden;
+			overflow-y: auto; /* prevents scroll bar flash */
+		}
+		#jb_sidebar {
+			width: 30%;
+			position: fixed;
+			top: 50px;
+			right: 0;
+			padding: 0px 20px 20px 0;
+			margin-bottom: 20px;
+			float: right;
+			border: 0px solid #bcbcbc;
+		}
+        .standalone-container {
+            margin: 50px auto;
+            width: 100%;
+        }
+        #snow-container {
+            height: 750px;
+        }
+		.ql-showHtml:after {
+			content: "[SRC]";
+		}
+		.ql-clearContents:after {
+			content: "[Clear]";
+		}
+		.ql-opnFile:after {
+			content: "[File]";
+		}
+		#header_center {
+			height: 60px;
+			padding-left: 0px;
+			margin: 0px auto;
+			margin-bottom: 0px;
+			vertical-align:middle;
+			border: 0px solid #bcbcbc;
+			text-align: center;
+		}
+		#dic_frame {
+			width: 100%;
+			min-height: 800px;
+			border: 0px solid black;
+		}
+		body {
+			font-family: 'Libre Franklin', sans-serif;
+			font-size: 13px;
+		}
+		#dicType {
+			font-family: 'Libre Franklin', sans-serif;
+			font-size: 12px;
+		}
+
+		header {
+			height: 35px;
+			position: fixed;
+			top: 0;
+            left: 0;
+			transition: top 0.2s ease-in-out;
+			width: 100%;
+			font-size: 1em;
+		}
+		
+		ul.topnav {
+			list-style-type: none;
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+			background-color: #333;
+		}
+		
+		ul.topnav li {float: left;}
+		
+		ul.topnav li a {
+			display: block;
+			color: white;
+			text-align: center;
+			padding: 9px 16px;
+			text-decoration: none;
+		}
+		
+		ul.topnav li a:hover:not(.active) {background-color: #111;}
+
+		ul.topnav li a.active {background-color: #4CAF50;}
+
+		ul.topnav li.right {float: right;}
+			
+		.nav_up {
+			top: -35px;
+		}
+	</style>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+	<script>
+		var selectText = "";
+		var wordArray = [];
+		var dicAddr = "http://c.merriam-webster.com/coredictionary/";
+		$(function(){
+			var showData = $('#show_img');
+			$.support.cors = true;
+
+			
+			// Hide Header on on scroll down
+			var didScroll;
+			var lastScrollTop = 0;
+			var delta = 5;
+			var navbarHeight = $('header').outerHeight();
+
+			$(window).scroll(function(event){
+				didScroll = true;
+			});
+
+			setInterval(function() {
+				if (didScroll) {
+					hasScrolled();
+					didScroll = false;
+				}
+			}, 250);
+
+			function hasScrolled() {
+				var st = $(this).scrollTop();
+				
+				// Make sure they scroll more than delta
+				if(Math.abs(lastScrollTop - st) <= delta)
+					return;
+				
+				// If they scrolled down and are past the navbar, add class .nav_up.
+				// This is necessary so you never see what is "behind" the navbar.
+				if (st > lastScrollTop && st > navbarHeight){
+					// Scroll Down
+					$('header').removeClass('nav_down').addClass('nav_up');
+				} else {
+					// Scroll Up
+					if(st + $(window).height() < $(document).height()) {
+						$('header').removeClass('nav_up').addClass('nav_down');
+					}
+				}
+				
+				lastScrollTop = st;
+			}
+
+
+			$( "#docTitle" ).html( document.getElementsByTagName('title')[0].innerHTML );
+			console.log( document.getElementsByTagName('title')[0].innerHTML );
+			$( "#jb_content" ).bind('dblclick', function(e){
+				search();
+				imageSearch();
+			});
+			$( "#searchWordButton" ).click(function() {
+				selectText = $("#searchWord").val();
+				dicSearch();
+				wordList();
+				imageSearch();
+			});
+			$("#dicType").change(function() {
+				dicSearch();
+			});
+			
+			function imageSearch() {
+		
+				if (document.getElementById("myCheck").checked) {
+					$('#img_layer').css("display","block");
+					$.ajax({
+						url: 'https://www.googleapis.com/customsearch/v1',
+						 type: 'GET',
+						 data: "key=AIzaSyAsn_BqIJs8FS8qyCZonEvJ2fgpzXHmt_s&cx=012222057275105284918:2fhqptrxpgk&q="+selectText+"&num=7&start=1&imgSize=medium&searchType=image",
+						 dataType: 'JSON',
+						 success: function(data){
+							showData.empty();
+							$.each(data.items, function (i, item) {
+								if(i == 0) showData.append('<ul />');
+								showData.append('<li><a href="'+item.image.contextLink+'"><img src="'+item.link+'" alt="'+item.title+'"></a><br/>'+item.title+'<br/>'+item.snippet + '</li>');
+							});
+						 }
+					});
+				}			
+			
+			}
+
+			$("#save").click(function(){
+				
+				if($.trim($('#fileName').val()) == "") {
+					alert('파일명을 입력해 주세요.');
+					return;
+				}
+				
+				var str = document.querySelector('#snow-container').children[0].innerHTML;
+				var find = '<p><br></p>';
+				var re = new RegExp(find, 'g');
+				str = str.replace(re, '');
+				var orgText = "<!doctype html>";
+				orgText += "<html>";
+				orgText += "  <head>";
+				orgText += "    <title>"+$('#fileName').val()+"</title>";
+				orgText += "    <link href='https://cdn.quilljs.com/1.3.6/quill.snow.css' type='text/css' rel='stylesheet'>";
+				orgText += "  </head>";
+				orgText += "  <body>";
+				orgText += str;
+				orgText += "  </body>";
+				orgText += "</html>";
+				
+				//var textToWrite = wordWrap(orgText, 72);
+				
+				var textFileAsBlob = new Blob([orgText], {type:'text/html'});
+				var fileNameToSaveAs = $('#fileName').val()+'.html';
+
+				try {
+					var downloadLink = document.createElement("a");
+					downloadLink.download = fileNameToSaveAs;
+					downloadLink.innerHTML = "Download File";
+					if (window.webkitURL != null)
+					{
+						// Chrome allows the link to be clicked
+						// without actually adding it to the DOM.
+						downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+					}
+					else
+					{
+						// Firefox requires the link to be added to the DOM
+						// before it can be clicked.
+						downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+						//downloadLink.onclick = destroyClickedElement;
+						downloadLink.style.display = "none";
+						document.body.appendChild(downloadLink);
+					}
+
+					downloadLink.click();
+				}
+				catch(err) {
+					window.navigator.msSaveBlob(textFileAsBlob, $('#fileName').val()+'.html'); 
+				}
+				
+			});
+
+		});
+
+		function onresize() {
+			if ($(window).height() == $(document).height()){
+				$('header').removeClass('nav_up').addClass('nav_down');
+			}
+		}
+		
+		function search() {
+	
+			var selection;
+			
+			if (window.getSelection) {
+			  selection = window.getSelection();
+			} else if (document.selection) {
+			  selection = document.selection.createRange();
+			}
+			selectText = selection.toString().trim();
+			
+			if (selectText.length > 0) {
+				dicSearch();
+				wordList();
+				
+				var nNd = document.createElement("span");
+				var w = getSelection().getRangeAt(0);
+				w.surroundContents(nNd);
+				$('span').css({"color":"blue"});
+			}
+			
+		
+		}
+		
+		function dicSearch() {
+		
+			if ($("#dicType").val() == "1") {
+				if (selectText == "") {
+					dicAddr = "https://www.merriam-webster.com/word-of-the-day";
+				} else {
+					dicAddr = "https://www.merriam-webster.com/dictionary/"+selectText;
+				}
+			} else if ($("#dicType").val() == "2") {
+				if (selectText == "") {
+					dicAddr = "http://learnersdictionary.com/";
+				} else {
+					dicAddr = "http://learnersdictionary.com/definition/"+selectText;
+				}
+			} else if ($("#dicType").val() == "3") {
+				dicAddr = "http://c.merriam-webster.com/coredictionary/"+selectText;
+			} else if ($("#dicType").val() == "4") {
+				dicAddr = "http://small.dic.daum.net/search.do?q="+selectText+"&dic=eng";
+			}
+			$('#dic_frame').attr('src', dicAddr);
+		
+		}
+		
+		function wordList() {
+			var myEditor = document.querySelector('#snow-container');
+			var html = myEditor.children[0].innerHTML;
+			var isThere = false;
+            jQuery.each( wordArray, function( i, val ) {
+                if (val == selectText) {
+                    isThere = true;
+                    return;
+                }
+            });
+            if ( isThere ) return;
+            if (wordArray.length == 0) {
+                document.querySelector('#snow-container').children[0].innerHTML = "<strong>"+selectText+"</strong>";
+            } else {
+                document.querySelector('#snow-container').children[0].innerHTML = html + "<strong>"+selectText+"</strong>";
+            }
+            wordArray.push(selectText);
+		}
+
+		function ReadingOnly() {
+			$('#jb_content').css('width', '50%');
+			$('#jb_content').css('padding', '30px 25% 0 25%');
+			$('#jb_txtEditor').css('display', 'none');
+			$('#jb_sidebar').css('display', 'none');
+		}
+
+		function ReadingPractice() {
+			$('#jb_content').css('width', '30%');
+			$('#jb_content').css('padding', '45px 20px 20px 20px');
+			$('#jb_txtEditor').css('display', 'block');
+			$('#jb_sidebar').css('display', 'block');
+		}
+		
+	</script>
+  </head>
+	<body onresize="onresize()">
+        <header class="nav_down">
+            <ul class="topnav">
+                <li><a href="#none" onclick="ReadingOnly();">Reading Only</a></li>
+                <li><a href="#none" onclick="ReadingPractice();">Reading Practice</a></li>
+            </ul>
+        </header>
+        <div id="big_layout">
+			<div id="jb_content">
+<!-- contents start -->              
+<body>
+	<p>Great Presidential Speeches
+
+	<p>When George Washington pledged during his first inaugural address to protect the new nation’s “liberties and freedoms” under “a government instituted by themselves,” he launched a long tradition of great presidential speeches. 
+	<p>America’s first president later concluded his term in office with a much-admired, moving Farewell Address. Although it is by all accounts the most famous and best-known of his speeches, it was never actually delivered orally by Washington. By his own arrangement, it first appeared in a newspaper in Philadelphia. 
+	<p>Washington took office during the birth of the nation, and his speeches tended to be moving, thoughtful pieces about the values of the new country. Franklin Delano Roosevelt, however, was president during one of the most difficult times in America’s history. Taking office in the middle of the Great Depression, Roosevelt outlined his plans for recovery in a rousing speech that declared: “the only thing we have to fear is fear itself.” He delivered this unforgettable line in the first paragraph of his speech: 
+	<p>I am certain that my fellow Americans expect that on my induction into the Presidency I will address them with a candor and a decision which the present situation of our Nation impels. This is preeminently the time to speak the truth, the whole truth, frankly and boldly. Nor need we shrink from honestly facing conditions in our country today. This great Nation will endure as it has endured, will revive and will prosper. So, first of all, let me assert my firm belief that the only thing we have to fear is fear itself— nameless, unreasoning, unjustified terror which paralyzes needed efforts to convert retreat into advance. 
+	<p>John F. Kennedy is considered one of the greatest presidential orators of the 20th Century. Short but memorable, Kennedy’s 1961 Inaugural Address exhorted American citizens to “ask not what your country can do for you—ask what you can do for your country.” 
+	<p>President Kennedy delivered many other famous speeches during his short tenure as president. In a 1962 address at Rice University in Houston, Texas, he inspired Americans to strive beyond Earth’s limits. The speech was both philosophical and practical, as Kennedy spoke of the mysteries of space, as well as how the enormous expense of the space program was justified. 
+	<p>We choose to go to the moon. We choose to go to the moon in this decade and do the other things, not because they are easy, but because they are hard, because that goal will serve to organize and measure the best of our energies and skills, because that challenge is one that we are willing to accept, one we are unwilling to postpone, and one which we intend to win… 
+	
+	
+	
+	<p>Assassinated a little more than a year after he delivered what became known as the “We Choose to Go to the Moon” address, Kennedy would not live to see the results of his inspiring speech—the 1969 moon landing of Apollo 11. 
+	<p>Following President Kennedy into office was Lyndon B. Johnson. Johnson was in the White House during two of the most defining events of modern American history: the escalation of the Vietnam War, and the Civil Rights Movement. 
+	<p>Johnson, a white southerner, adopted the language of the Civil Rights Movement in a 1965 address to a joint session of Congress. Titled “The American Promise,” the speech was made a week after deadly racial violence erupted in Selma, Alabama, as African-Americans were attacked by police while preparing to march to Montgomery to protest voting rights discrimination. In the address, delivered two days before he sent the Voting Rights Act to Congress, Johnson implored members of Congress and all American citizens to help him end “the crippling legacy of bigotry and injustice.” 
+	<p>I speak tonight for the dignity of man and the destiny of Democracy. I urge every member of both parties, Americans of all religions and of all colors, from every section of this country, to join me in that cause. 
+	<p>It was more than a hundred years ago that Abraham Lincoln, a great president of another party, signed the Emancipation Proclamation; but emancipation is a proclamation, and not a fact. A century has passed, more than a hundred years, since equality was promised…And the promise is unkept. 
+	<p>And so I say to all of you here and to all in the nation tonight that those who appeal to you to hold on to the past do so at the cost of denying you your future. This great, rich, restless country can offer opportunity and education and hope to all—all, black and white, North and South, sharecropper and city dweller. These are the enemies: poverty, ignorance, disease. They are our enemies, not our fellow man, not our neighbor. 
+	<p>And these enemies too—poverty, disease and ignorance—we shall overcome. 
+	
+	
+	<p>Ronald Reagan, our 40th president, was a controversial figure in many ways, but even his harshest critics agree that he was a great orator. Reagan’s presidency came toward the end of the Cold War. During the Cold War, the United States and the Union of Soviet Socialist Republics fought with words and threats— not soldiers—to determine which form of government, democracy or communism, would rule the world. In 1983, Reagan escalated the rhetoric of the Cold War by referring to the Soviet Union as the “evil empire” in a speech to a meeting of religious leaders. This was a harsh description, given the fact that relations between the U.S. and the Soviet Union had been improving. 
+	<p>During a 1987 visit to the Brandenberg Gate, President Reagan delivered a speech to the people of West Berlin, Germany. People in communist East Berlin, on the other side of the Berlin Wall, could not see Reagan, but they could hear the speech, which was broadcast to them. Reagan challenged Mikhail Gorbachev, then the General Secretary of the Communist Party of the Soviet Union, to tear down the Berlin Wall as a symbol of increasing freedom in communist countries. 
+	<p>And now the Soviets themselves may, in a limited way, be coming to understand the importance of freedom. We hear much from Moscow about a new policy of reform and openness…. Are these the beginnings of profound changes in the Soviet state? Or are they token gestures, intended to raise false hopes in the West, or to strengthen the Soviet system without changing it? …There is one sign the Soviets can make that would be unmistakable, that would advance dramatically the cause of freedom and peace. 
+	<p>General Secretary Gorbachev, if you seek peace, if you seek prosperity for the Soviet Union and Eastern Europe, if you seek liberalization: Come here to this gate! Mr. Gorbachev, open this gate! Mr. Gorbachev, tear down this wall! 
+	<p>The Berlin Wall was opened by East Germany on November 9, 1989, and was torn down by the end of 1990, as Communism collapsed and the Cold War ended. 
+	
+	
+	<p>At the opposite end of the political spectrum from Ronald Reagan is Barack Obama, the 44th president of the United States. 
+	<p>While on the presidential campaign trail in Philadelphia, Pennsylvania, Barack Obama delivered what was to become known as his “speech on race.” The speech called on the American nation to move political focus off of race and onto “problems that confront us all.” 
+	<p>“We the people, in order to form a more perfect union….” 
+	<p>Two hundred and twenty one years ago, in a hall that still stands across the street, a group of men gathered and, with these simple words, launched America’s improbable experiment in democracy. Farmers and scholars, statesmen and patriots who had traveled across an ocean to escape tyranny and persecution finally made real their declaration of independence at a Philadelphia convention that lasted through the spring of 1787.  
+	<p>The document they produced was eventually signed, but ultimately unfinished. It was stained by this nation’s original sin of slavery, a question that divided the colonies and brought the convention to a stalemate until the founders chose to allow the slave trade to continue for at least twenty more years, and to leave any final resolution to future generations. 
+	<p>Of course, the answer to the slavery question was already embedded within our Constitution, a Constitution that had at its very core the ideal of equal citizenship under the law; a Constitution that promised its people liberty, and justice, and a union that could be and should be perfected over time. 
+	<p>And yet words on a parchment would not be enough to deliver slaves from bondage, or provide men and women of every color and creed their full rights and obligations as citizens of the United States. What would be needed were Americans in successive generations who were willing to do their part, through protests and struggle, on the streets and in the courts, through a civil war and civil disobedience and always at great risk, to narrow that gap between the promise of our ideals and the reality of their time. 
+	<p>Shortly after the speech was delivered, many critics were quick to herald the speech as heroic, praising Obama for confronting the issue of race head on. In fact, many of Obama’s speeches, as well as his powerful speechmaking skills, have caused observers to compare him to John F. Kennedy, and praise him as one of the greatest presidential orators of modern times.
+</body>
+<!-- contents end -->
+			
+        </div>
+        <div id="jb_txtEditor">
+            <!--<textarea id="myTextarea" spellcheck="false"></textarea>-->
+            <div class="standalone-container">
+                <div id="snow-container" spellcheck="false"></div><br/>
+				파일명: <input type="text" id="fileName">
+				<button type="button" value="save" id="save">Save</button><br/>
+				예시) 파일명이 englishow 이면 englishow.html로 저장됨.
+			</div>
+        </div>
+        <div id="jb_sidebar">
+            <div id="header_center">
+                <h1 style="text-align:center;" id="docTitle"></h1>
+            </div>
+        dictionary : <select name="dicType" id="dicType">
+                        <option value="3">english korea</option>            
+                        <option value="4">Daum Dictionary</option>			
+						<option value="2">english english</option>			
+						<option value="1">Merriam Webster</option>
+                    </select>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <input type="text" id="searchWord" name="searchWord" style="width:150px" />&nbsp;&nbsp;&nbsp;<input type="button" id="searchWordButton" value="Search"/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+        <input type="checkbox" id="myCheck"> Image Search
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <iframe id="dic_frame" src="http://c.merriam-webster.com/coredictionary/"></iframe>
+        </div>
+    </div><!-- big_layout end -->
+	<div id="img_layer" style="display:none;position:fixed;left:34%;top:60px;width:500px;height:95%;overflow:auto;background:#fff;">
+		<button type="button" style="position:relative;left:230px;width:50px; "onclick="javascript:$('#img_layer').css('display','none');">닫기</button>
+		<div id="show_img"></div>
+		<button type="button" style="position:relative;left:230px;width:50px; "onclick="javascript:$('#img_layer').css('display','none');">닫기</button>
+	</div>
+	
+	<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script>
+		var toolbarOptions = [
+			['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+			['blockquote', 'code-block'],
+
+			[{ 'header': 1 }, { 'header': 2 }],               // custom button values
+			[{ 'list': 'ordered' }, { 'list': 'bullet' }],
+			[{ 'script': 'sub' }, { 'script': 'super' }],      // superscript/subscript
+			[{ 'indent': '-1' }, { 'indent': '+1' }],          // outdent/indent
+			[{ 'direction': 'rtl' }],                         // text direction
+
+			[{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+			[{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+			[{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+			[{ 'font': [] }],
+			[{ 'align': [] }],
+
+			['clean'],                                         // remove formatting button
+			['link', 'image', 'video'],
+			['showHtml'],
+			
+			['clearContents'],
+
+			['opnFile']
+		];
+
+		var quill = new Quill('#snow-container', {
+			modules: {
+				toolbar: toolbarOptions,
+				clipboard: {
+					matchVisual: false
+				}
+			},
+			theme: 'snow'
+		});
+
+		var txtArea = document.createElement('textarea');
+		txtArea.style.cssText = "width: 100%;margin: 0;background: rgb(255, 255, 255);box-sizing: border-box;color: rgb(0, 0, 0);"+
+		"font-size: 13px;outline: none;padding: 20px;line-height: 24px;font-family: Consolas, Menlo, Monaco, &quot;Courier New&quot;, monospace;"+
+		"position: absolute;top: 0;bottom: 0;border: none;display:none";
+
+		var htmlEditor = quill.addContainer('ql-custom');
+		htmlEditor.appendChild(txtArea);
+
+		var myEditor = document.querySelector('#snow-container');
+		quill.on('text-change', (delta, oldDelta, source) => {
+			var html = myEditor.children[0].innerHTML;
+			txtArea.value = html;
+		});
+
+		var customButton = document.querySelector('.ql-showHtml');
+		customButton.addEventListener('click', function () {
+			if (txtArea.style.display === '') {
+				var html = txtArea.value;
+				self.quill.pasteHTML(html);
+			}
+			txtArea.style.display = txtArea.style.display === 'none' ? '' : 'none';
+		});
+
+		var clearContents = document.querySelector('.ql-clearContents');
+		clearContents.addEventListener('click', function () {
+			myEditor.children[0].innerHTML = '';
+            wordArray = [];
+		});
+
+		var openFile = document.querySelector('.ql-opnFile');
+		openFile.addEventListener('click', function () {
+			selectLocalFile();
+		});
+
+		function selectLocalFile() {
+			const input = document.createElement('input');
+			input.setAttribute('type', 'file');
+			input.click();
+
+			// Listen upload local image and save to server
+			input.onchange = () => {
+				const file = input.files[0];
+
+				var reader = new FileReader();
+				
+				reader.addEventListener('load', function (e) {
+					var htm = e.target.result;
+					htm = htm.substring(htm.indexOf("<body>")+6, htm.indexOf("</body>"));
+					self.quill.clipboard.dangerouslyPasteHTML(htm);
+				});
+				
+				reader.readAsText(file);
+			};
+		}
+
+    </script>
+</body>
+</html>
