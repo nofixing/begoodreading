@@ -1,0 +1,221 @@
+<html>
+
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Libre+Franklin" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Nanum+Pen+Script" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Oswald" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Shadows+Into+Light" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Abril+Fatface" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Teko" rel="stylesheet">
+    <style>
+        /* Set dropdown font-families */
+
+        #toolbar-container .ql-font span[data-label="Sans Serif"]::before {
+            font-family: "Sans Serif";
+        }
+
+        #toolbar-container .ql-font span[data-label="Libre Franklin"]::before {
+            font-family: "Libre Franklin";
+        }
+
+        #toolbar-container .ql-font span[data-label="Inconsolata"]::before {
+            font-family: "Inconsolata";
+        }
+
+        #toolbar-container .ql-font span[data-label="Roboto"]::before {
+            font-family: "Roboto";
+        }
+
+        #toolbar-container .ql-font span[data-label="Mirza"]::before {
+            font-family: "Mirza";
+        }
+
+        #toolbar-container .ql-font span[data-label="Arial"]::before {
+            font-family: "Arial";
+        }
+
+        #toolbar-container .ql-font span[data-label="Nanum Pen Script"]::before {
+            font-family: "Nanum Pen Script";
+        }
+
+        #toolbar-container .ql-font span[data-label="Oswald"]::before {
+            font-family: "Oswald";
+        }
+
+        #toolbar-container .ql-font span[data-label="Shadows Into Light"]::before {
+            font-family: "Shadows Into Light";
+        }
+
+        #toolbar-container .ql-font span[data-label="Abril Fatface"]::before {
+            font-family: "Abril Fatface";
+        }
+
+        #toolbar-container .ql-font span[data-label="Teko"]::before {
+            font-family: "Teko";
+        }
+
+        /* Set content font-families */
+
+        .ql-font-LibreFranklin {
+            font-family: "Libre Franklin";
+        }
+
+        .ql-font-inconsolata {
+            font-family: "Inconsolata";
+        }
+
+        .ql-font-roboto {
+            font-family: "Roboto";
+        }
+
+        .ql-font-mirza {
+            font-family: "Mirza";
+        }
+
+        .ql-font-arial {
+            font-family: "Arial";
+        }
+
+        .ql-font-NanumPenScript {
+            font-family: "Nanum Pen Script";            
+        }
+
+        .ql-font-Oswald {
+            font-family: "Oswald";            
+        }
+
+        .ql-font-ShadowsIntoLight {
+            font-family: "Shadows Into Light";
+        }
+
+        .ql-font-AbrilFatface {
+            font-family: "Abril Fatface";            
+        }
+
+        .ql-font-Teko {
+            font-family: "Teko";            
+        }
+
+        /* We do not set Sans Serif since it is the default font */
+    </style>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script>
+        $(function(){
+            $( "#quillView" ).click(function() {
+                var myEditor = document.querySelector('#editor-container');
+                var html = myEditor.children[0].innerHTML;
+                $ ( "#jb_content" ).html(html);
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <!-- Style -->
+
+
+
+    <div id="toolbar-container" class="ql-toolbar ql-snow" style="width: 800px;">
+        <span class="ql-formats">
+            <select class="ql-font" style="width: 150px;">
+                <option selected="">Sans Serif</option>
+                <option value="LibreFranklin">Libre Franklin</option>
+                <option value="inconsolata">Inconsolata</option>
+                <option value="roboto">Roboto</option>
+                <option value="mirza">Mirza</option>
+                <option value="arial">Arial</option>
+                <option value="NanumPenScript">Nanum Pen Script</option>
+                <option value="Oswald">Oswald</option>
+                <option value="ShadowsIntoLight">Shadows Into Light</option>
+                <option value="AbrilFatface">Abril Fatface</option>
+                <option value="Teko">Teko</option>
+            </select>
+        </span>
+        <span class="ql-formats">
+            <select class="ql-header"></select>
+            <select class="ql-size"></select>
+        </span>
+        <span class="ql-formats">
+            <button class="ql-bold"></button>
+            <button class="ql-italic"></button>
+            <button class="ql-underline"></button>
+            <button class="ql-strike"></button>
+        </span>
+        <span class="ql-formats">
+            <select class="ql-color">
+                <option selected></option>
+                <option value="red"></option>
+                <option value="orange"></option>
+                <option value="yellow"></option>
+                <option value="green"></option>
+                <option value="blue"></option>
+                <option value="purple"></option>
+            </select>
+            <select class="ql-background">
+                <option selected></option>
+                <option value="red"></option>
+                <option value="orange"></option>
+                <option value="yellow"></option>
+                <option value="green"></option>
+                <option value="blue"></option>
+                <option value="purple"></option>
+            </select>
+        </span>
+        <span class="ql-formats">
+            <button class="ql-script" value="sub"></button>
+            <button class="ql-script" value="super"></button>
+        </span>
+        <span class="ql-formats">
+            <button class="ql-blockquote"></button>
+            <button class="ql-code-block"></button>
+        </span>
+        <span class="ql-formats">
+            <button class="ql-list" value="ordered"></button>
+            <button class="ql-list" value="bullet"></button>
+            <select class="ql-align"></select>
+        </span>
+        <span class="ql-formats">
+            <button class="ql-link"></button>
+            <button class="ql-image"></button>
+            <button class="ql-formula"></button>
+        </span>
+        <span class="ql-formats">
+            <button class="ql-indent" value="-1"></button>
+            <button class="ql-indent" value="+1"></button>
+            <button class="ql-direction" value="rtl"></button>
+            <button class="ql-clean"></button>
+        </span>
+    </div>
+    <!-- quill js container -->
+    <div id="editor-container" class="ql-container ql-snow" style="width: 800px; height: 500px;"></div>
+    
+    <div id="jb_content" class="ql-editor" style="width: 800px; height: 200px;"></div>
+
+    <input type="button" id="quillView" value="quillView"/>
+    
+    <!-- Add quill js on the project -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script type="text/javascript">
+        // Add fonts to whitelist
+        var Font = Quill.import('formats/font');
+        // We do not add Sans Serif since it is the default
+        Font.whitelist = ['LibreFranklin', 'inconsolata', 'roboto', 'mirza', 'arial', 'NanumPenScript', 'Oswald', 'ShadowsIntoLight', 'AbrilFatface', 'Teko'];
+        Quill.register(Font, true);
+
+
+        // We can now initialize Quill with something like this:
+        var quillObj = new Quill('#editor-container', {
+            modules: {
+                toolbar: '#toolbar-container'
+            },
+            placeholder: 'This is a font test...',
+            theme: 'snow'
+        });
+    </script>
+
+
+</body>
+
+</html>
